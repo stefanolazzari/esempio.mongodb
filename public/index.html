@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>Gestione Utenti</title>
+</head>
+<body>
+  <h1>Gestione Utenti</h1>
+
+  <form id="userForm">
+    <label>Nome:</label>
+    <input type="text" id="nome" required />
+    <br><br>
+    <label>Età:</label>
+    <input type="number" id="eta" required />
+    <br><br>
+    <button type="submit">Aggiungi</button>
+  </form>
+
+  <h2>Utenti nel database:</h2>
+  <ul id="listaUtenti"></ul>
+
+  <script>
+    const form = document.getElementById('userForm');
+    const lista = document.getElementById('listaUtenti');
+
+    // Invia un nuovo utente
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const nome = document.getElementById('nome').value;
+      const eta = document.getElementById('eta').value;
+
+      await fetch('/api/utenti', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nome, eta })
+      });
+
+      form.reset();
+      caricaUtenti();
+    });
+
+    // Elimina utente
+    async function eliminaUtente(id) {
+      const conferma = confirm('Sei sicuro di voler eliminare questo utente?');
+      if (!conferma) return;
+
+      await fetch(`/api/utenti/${id}`, { method: 'DELETE' });
+      caricaUtenti();
+    }
+
+    // Carica lista utenti
+    async function caricaUtenti() {
+      const res = await fetch('/api/utenti');
+      const utenti = await res.json();
+      lista.innerHTML = '';
+
+      utenti.forEach(u => {
+        const li = document.createElement('li');
+        li.textContent = `${u.nome} (${u.eta} anni) `;
+
+        const btn = document.createElement('button');
+        btn.textContent = 'Elimina';
+        btn.onclick = () => eliminaUtente(u._id);
+
+        li.appendChild(btn);
+        lista.appendChild(li);
+      });
+    }
+
+    caricaUtenti();
+  </script>
+</body>
+</html>
